@@ -1,24 +1,25 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Overflow.Identity.Data;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// (1) Telemetría/health/endpoints de Aspire
 builder.AddServiceDefaults();
 
-// 1) ConnectionString inyectada por Aspire (.WithReference("identitydb"))
+// (2) ConnectionString inyectada por Aspire en runtime
 var connStr = builder.Configuration.GetConnectionString("identitydb");
 
-// 2) DbContext con Npgsql
+// (3) DbContext con Npgsql
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseNpgsql(connStr);
 });
 
-// 3) Identity Core + Roles + EF Stores
+// (4) ASP.NET Identity (Core + Roles + EF Stores)
 builder.Services
     .AddIdentityCore<IdentityUser>(opts =>
     {
@@ -29,11 +30,11 @@ builder.Services
         opts.Password.RequireLowercase = true;
         opts.Password.RequireDigit = false;
     })
-    .AddRoles<IdentityRole>() // habilita tabla AspNetRoles
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// 4) Autenticación JWT
+// (5) Autenticación JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-32chars-min-xxxxxxxxxxxxxxxxxxxxxxx";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Overflow.Identity";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Overflow.ApiClients";
@@ -49,34 +50,30 @@ builder.Services
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
 
 builder.Services.AddAuthorization();
 
+// (6) Infra básica API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-//migrations con scoped 
-// 5) Aplicar migraciones en arranque (útil en desarrollo)
-using (var scope = app.Services.CreateScope())
+// (7) Auto-migrar y seed SOLO en Development
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // crea/actualiza esquema si faltan migraciones aplicadas
-}
-
-app.MapDefaultEndpoints();
-
-// --- 5) CREAR ROLES POR DEFECTO (ADMIN / MEMBER) ---
-using (var scope = app.Services.CreateScope())
-{
+    await db.Database.MigrateAsync(); // aplica migraciones pendientes
+    
     var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var roles = new[] { "ADMIN", "MEMBER" };
-
+    // Define aquí los roles iniciales
+    var roles = new[] { "ADMIN", "USER" };
     foreach (var role in roles)
     {
         if (!await roleMgr.RoleExistsAsync(role))
@@ -85,21 +82,24 @@ using (var scope = app.Services.CreateScope())
             Console.WriteLine($"[Seed] Rol creado: {role}");
         }
     }
-}
-
-// ---------------------------------------------------
-
-if (app.Environment.IsDevelopment())
-{
+    
+    // Swagger solo en Development
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    
 }
 
+// (8) Middleware pipeline
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// (9) Endpoints de OpenAPI y health/telemetría de Aspire
+//app.mapopenapi <- no lo uso 
+app.MapDefaultEndpoints();
+
+// (10) Rutas de controladores
 app.MapControllers();
 
 app.Run();
-    

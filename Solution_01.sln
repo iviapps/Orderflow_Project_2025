@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overflow.AppHost", "Overflo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overflow.ServiceDefaults", "Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj", "{9FFD5E45-942B-0C74-AB32-283D13458368}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "overflow.web", "Overflow.Web\overflow.web.esproj", "{3BBDF14E-32E5-2C89-678D-6A0E80481870}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,12 @@ Global
 		{9FFD5E45-942B-0C74-AB32-283D13458368}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FFD5E45-942B-0C74-AB32-283D13458368}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FFD5E45-942B-0C74-AB32-283D13458368}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BBDF14E-32E5-2C89-678D-6A0E80481870}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
