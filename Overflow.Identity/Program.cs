@@ -2,10 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OrderFlow.Identity.Extensions;
 using Overflow.Identity.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // (1) Telemetría/health/endpoints de Aspire
 builder.AddServiceDefaults();
@@ -33,27 +36,16 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+//SECRETS
 
-// (5) Autenticación JWT
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-key-32chars-min-xxxxxxxxxxxxxxxxxxxxxxx";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Overflow.Identity";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Overflow.ApiClients";
+//builder.Configuration.AddUserSecrets<Program>();
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o =>
-    {
-        o.TokenValidationParameters = new()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+//FALTA HACER LLAMADA A JWT 
+// (5) Autenticación JWT Bearer
+//EXTENSIONS>JWTAUTENTHICATIONEXTENSIONS 
+//currently using using OrderFlow.Identity.Extensions; <-  JwtAuthenticationExtensions modified by " public static IServiceCollection AddJwtAuthentication.." <- 
+//es un metodo extendido con this IServiceCollection services    <- lo que lo hace posible de exportar e inyectar en mi program 
+builder.Services.AddJwtAuthentication(builder.Configuration);   
 
 builder.Services.AddAuthorization();
 
