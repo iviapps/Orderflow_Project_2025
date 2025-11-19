@@ -9,23 +9,28 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentValidation" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"  />
+		<PackageReference Include="FluentValidation.AspNetCore" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning"  />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" >
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"  />
-		<PackageReference Include="Swashbuckle.AspNetCore"  />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+		<PackageReference Include="Swashbuckle.AspNetCore" />
 	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Validators\AuthValidator\" />
   </ItemGroup>
 
 </Project>
