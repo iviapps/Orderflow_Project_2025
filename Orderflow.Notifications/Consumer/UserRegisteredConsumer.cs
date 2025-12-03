@@ -1,6 +1,7 @@
 ﻿using MassTransit;
-using NETCore.MailKit.Core;
+using Orderflow.Notifications.Services; 
 using Orderflow.Shared.Events;
+
 
 
 namespace OrderFlow.Notifications.Consumers;

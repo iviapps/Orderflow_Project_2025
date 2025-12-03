@@ -1,6 +1,6 @@
 using MassTransit;
-using Orderflow.Notifications.Consumers;
-using Orderflow.Notifications.Services;
+using NETCore.MailKit.Core;
+
 
 var builder = Host.CreateApplicationBuilder(args);
 
