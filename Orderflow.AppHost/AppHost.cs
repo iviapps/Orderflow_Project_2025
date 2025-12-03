@@ -70,7 +70,7 @@ var identityService = builder.AddProject<Projects.Orderflow_Identity>("Orderflow
 //// ============================================
 // API Gateway acts as the single entry point for all client requests
 // It handles authentication, authorization, rate limiting, and routes to microservices
-var apiGateway = builder.AddProject<Projects.Orderflow_Api_Gateway>("Orderflow-apigateway")
+var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("Orderflow-apigateway")
     .WithReference(redis) // Redis for rate limiting and caching
     .WithReference(identityService)
     //.WithReference(catalogService) -> catalogService not yet implemented
@@ -79,8 +79,7 @@ var apiGateway = builder.AddProject<Projects.Orderflow_Api_Gateway>("Orderflow-a
 //.WaitFor(catalogService) -> wait for complimenting services, same as before
 //.WaitFor(ordersService); -> wait for complimenting services, same as before
 
-//Container for API Gateway project
-builder.AddProject<Projects.Orderflow_Api_Gateway>("Orderflow-api-gateway");
+
 
 //// ============================================
 //// FRONTEND - React App
@@ -118,30 +117,7 @@ builder.AddProject<Projects.Orderflow_Api_Gateway>("Orderflow-api-gateway");
 //    .WaitFor(ordersDb)
 //    .WaitFor(rabbitmq);
 
-//// ============================================
-//// API GATEWAY
-//// ============================================
-//// API Gateway acts as the single entry point for all client requests
-//// It handles authentication, authorization, rate limiting, and routes to microservices
-//var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("Orderflow-apigateway")
-//    .WithReference(redis) // Redis for rate limiting and caching
-//    .WithReference(identityService)
-//    .WithReference(catalogService)
-//    .WithReference(ordersService)
-//    .WaitFor(identityService)
-//    .WaitFor(catalogService)
-//    .WaitFor(ordersService);
 
-//// ============================================
-//// FRONTEND - React App
-//// ============================================
-//// Frontend communicates ONLY with API Gateway (not directly with microservices)
-//var frontendApp = builder.AddNpmApp("Orderflow-web", "../Orderflow.web", "dev")
-//    .WithReference(apiGateway) // Frontend talks to Gateway, not to services directly
-//    .WithEnvironment("VITE_API_GATEWAY_URL", apiGateway.GetEndpoint("https")) // Gateway URL for frontend
-//    .WithHttpEndpoint(env: "VITE_PORT") // Vite uses VITE_PORT environment variable
-//    .WaitFor(apiGateway)
-//    .WithExternalHttpEndpoints() // Make endpoint accessible via Aspire dashboard
-//    .PublishAsDockerFile();
+
 
 builder.Build().Run();
