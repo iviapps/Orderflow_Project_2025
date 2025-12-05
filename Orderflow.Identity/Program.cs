@@ -9,6 +9,10 @@ using Orderflow.Identity.Services;
 using Orderflow.Identity.Data;
 using Orderflow.Identity.Services.Auth;
 using Orderflow.Shared.Extensions;
+using OrderFlow.Identity.Services.Users;
+using Orderflow.Identity.Services.Roles;
+using Orderflow.Identity.Services.Users;
+using OrderFlow.Identity.Services.Roles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,13 +146,13 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 // ============================================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-// builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 // ============================================
 // JWT BEARER AUTHENTICATION
 // ============================================
-builder.Services.AddJwtAuthentication(builder.Configuration); // extensión tuya
+builder.Services.AddJwtAuthentication(builder.Configuration); // extensión jwt  
 
 var app = builder.Build();
 
