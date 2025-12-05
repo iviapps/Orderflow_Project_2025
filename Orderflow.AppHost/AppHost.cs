@@ -43,6 +43,11 @@ var identityService = builder.AddProject<Projects.Orderflow_Identity>("orderflow
     .WaitFor(identityDb)
     .WaitFor(rabbitmq);
 
+// Catalog Service - Products and Categories
+var catalogService = builder.AddProject<Projects.Orderflow_Catalog>("orderflow-catalog")
+    .WithReference(catalogDb)
+    .WaitFor(catalogDb);
+
 
 // -    -   -   -   -   -   -   -   -   -   NOT YET IMPLEMENTED -   -   -   -   -   -   -   -   -
 //// Notifications Worker - Listens to RabbitMQ events and sends emails
@@ -104,10 +109,6 @@ var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("Orderflow-ap
 //    .WithEnvironment("Email__SmtpPort", maildev.GetEndpoint("smtp").Property(EndpointProperty.Port))
 //    .WaitFor(rabbitmq);
 
-//// Catalog Service - Products and Categories
-//var catalogService = builder.AddProject<Projects.Orderflow_Catalog>("Orderflow-catalog")
-//    .WithReference(catalogDb)
-//    .WaitFor(catalogDb);
 
 //// Orders Service - Order management
 //var ordersService = builder.AddProject<Projects.Orderflow_Orders>("Orderflow-orders")
