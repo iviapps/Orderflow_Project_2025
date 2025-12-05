@@ -109,7 +109,7 @@ namespace Orderflow.Identity.Services.Auth
                 _logger.LogWarning("Failed to assign Customer role to user {UserId}: {Errors}",
                     user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
             }
-
+            //info injected. 
             _logger.LogInformation("User successfully registered: {UserId} - {Email}",
                 user.Id, user.Email);
 

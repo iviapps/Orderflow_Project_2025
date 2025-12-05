@@ -11,7 +11,7 @@ var postgres = builder.AddPostgres("postgres")
     .WithHostPort(5432)
     .WithLifetime(ContainerLifetime.Persistent);
 
-// Databases for microservices
+// Databases for microservices,
 var identityDb = postgres.AddDatabase("identitydb");
 var catalogDb = postgres.AddDatabase("catalogdb");
 var ordersDb = postgres.AddDatabase("ordersdb");
@@ -37,7 +37,7 @@ var maildev = builder.AddContainer("maildev", "maildev/maildev")
 // ============================================
 // MICROSERVICES
 // ============================================
-var identityService = builder.AddProject<Projects.Orderflow_Identity>("Orderflow-identity")
+var identityService = builder.AddProject<Projects.Orderflow_Identity>("orderflow-identity")
     .WithReference(identityDb)
     .WithReference(rabbitmq)
     .WaitFor(identityDb)
