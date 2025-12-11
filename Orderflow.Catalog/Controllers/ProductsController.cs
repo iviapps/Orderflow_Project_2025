@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Orderflow.Catalog.DTOs;
 using Orderflow.Catalog.Services;
 
@@ -51,8 +52,11 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ProductResponse>> Create([FromBody] CreateProductRequest request)
     {
         var result = await productService.CreateAsync(request);
@@ -68,9 +72,12 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ProductResponse>> Update(int id, [FromBody] UpdateProductRequest request)
     {
         var result = await productService.UpdateAsync(id, request);
@@ -96,8 +103,11 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await productService.DeleteAsync(id);
@@ -136,9 +146,12 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpPatch("{id:int}/stock")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(StockResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<StockResponse>> UpdateStock(int id, [FromBody] UpdateStockRequest request)
     {
         if (request.Quantity < 0)
@@ -171,10 +184,12 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpPost("{id:int}/stock/reserve")]
+    [Authorize]
     [ProducesResponseType(typeof(StockResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<StockResponse>> ReserveStock(int id, [FromBody] StockOperationRequest request)
     {
         if (request.Quantity <= 0)
@@ -208,10 +223,12 @@ public class ProductsController(IProductService productService, IStockService st
     }
 
     [HttpPost("{id:int}/stock/release")]
+    [Authorize]
     [ProducesResponseType(typeof(StockResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<StockResponse>> ReleaseStock(int id, [FromBody] StockOperationRequest request)
     {
         if (request.Quantity <= 0)

@@ -1,46 +1,47 @@
-using Microsoft.EntityFrameworkCore;
-using Orderflow.Catalog.Data;
-using Orderflow.Shared.Extensions;
-using System.Text.Json.Serialization;
+    using Microsoft.EntityFrameworkCore;
+    using Orderflow.Catalog.Data;
+    using Orderflow.Catalog.Services;
+    using Orderflow.Shared.Extensions;
+    using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+    builder.AddServiceDefaults();
 
-// Add PostgreSQL DbContext
-builder.AddNpgsqlDbContext<CatalogDbContext>("catalogdb");
+    // Add PostgreSQL DbContext
+    builder.AddNpgsqlDbContext<CatalogDbContext>("catalogdb");
 
-// JWT Authentication (shared across all microservices)
-builder.Services.AddJwtAuthentication(builder.Configuration);
+    // JWT Authentication (shared across all microservices)
+    builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// Register services
-//builder.Services.AddScoped<ICategoryService, CategoryService>();
-//builder.Services.AddScoped<IProductService, ProductService>();
-//builder.Services.AddScoped<IStockService, StockService>();
+    //Register services
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+    builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IStockService, StockService>();
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+    builder.Services.AddOpenApi();
+
+    var app = builder.Build();
+
+    // Auto-migrate database in development
+    if (app.Environment.IsDevelopment())
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
-builder.Services.AddOpenApi();
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+        await db.Database.MigrateAsync();
 
-var app = builder.Build();
+        app.MapOpenApi();
+    }
 
-// Auto-migrate database in development
-if (app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-    await db.Database.MigrateAsync();
+    app.MapDefaultEndpoints();
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
 
-    app.MapOpenApi();
-}
-
-app.MapDefaultEndpoints();
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-
-await app.RunAsync();
+    await app.RunAsync();

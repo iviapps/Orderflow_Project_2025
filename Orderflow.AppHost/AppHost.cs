@@ -80,10 +80,10 @@ var catalogService = builder.AddProject<Projects.Orderflow_Catalog>("orderflow-c
 var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("orderflow-apigateway")
     .WithReference(redis) // Redis for rate limiting and caching
     .WithReference(identityService)
-    //.WithReference(catalogService) -> catalogService not yet implemented
-    //.WithReference(ordersService) -> ordersService not yet implemented
-    .WaitFor(identityService);
-//.WaitFor(catalogService) -> wait for complimenting services, same as before
+    .WithReference(catalogService)
+    //.WithReference(ordersService) 
+    .WaitFor(identityService)
+    .WaitFor(catalogService); 
 //.WaitFor(ordersService); -> wait for complimenting services, same as before
 
 
