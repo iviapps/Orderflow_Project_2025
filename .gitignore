@@ -13,6 +13,12 @@
 *.userosscache
 *.sln.docstates
 
+# dotenv (global)
+.env
+.env.*
+!.env.example
+!.env.template
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
