@@ -21,6 +21,8 @@
 		<PackageReference Include="Microsoft.OpenApi" />
 		<PackageReference Include="Asp.Versioning.Http" />
 		<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+
 	</ItemGroup>
 
 
