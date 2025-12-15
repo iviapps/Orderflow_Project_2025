@@ -1,9 +1,9 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Orderflow.Orders.Data;
+using Orderflow.Orders.Services;
 using Orderflow.Shared.Extensions;
 using System.Text.Json.Serialization;
-
 
 var builder = WebApplication.CreateBuilder(args);
 

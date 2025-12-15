@@ -9,10 +9,8 @@ using Orderflow.Identity.Services;
 using Orderflow.Identity.Data;
 using Orderflow.Identity.Services.Auth;
 using Orderflow.Shared.Extensions;
-using OrderFlow.Identity.Services.Users;
 using Orderflow.Identity.Services.Roles;
 using Orderflow.Identity.Services.Users;
-using OrderFlow.Identity.Services.Roles;
 
 var builder = WebApplication.CreateBuilder(args);
 
