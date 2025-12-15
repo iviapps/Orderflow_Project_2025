@@ -8,6 +8,7 @@ namespace Orderflow.Catalog.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
+[ApiVersion("1.0")]
 public class ProductsController(IProductService productService, IStockService stockService) : ControllerBase
 {
     #region Product CRUD

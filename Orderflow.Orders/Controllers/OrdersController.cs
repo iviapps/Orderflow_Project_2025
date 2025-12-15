@@ -9,6 +9,7 @@ namespace Orderflow.Orders.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
+[ApiVersion("1.0")]
 [Authorize]
 public class OrdersController(IOrderService orderService) : ControllerBase
 {

@@ -8,6 +8,7 @@ namespace Orderflow.Catalog.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
+[ApiVersion("1.0")]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]

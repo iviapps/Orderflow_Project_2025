@@ -8,7 +8,8 @@ namespace Orderflow.Identity.Controllers
 
     
     [ApiController]
-    [ApiVersion(1)]
+    [ApiVersion("1.0")]
+
     [Route("api/v{version:apiVersion}/auth")]
     public class AuthController : ControllerBase
     {

@@ -10,6 +10,8 @@ namespace Orderflow.Orders.Controllers;
 [Route("api/v1/admin/orders")]
 [Produces("application/json")]
 [Authorize(Roles = "Admin")]
+[ApiVersion("1.0")]
+
 public class AdminOrdersController(IOrderService orderService) : ControllerBase
 {
     [HttpGet]

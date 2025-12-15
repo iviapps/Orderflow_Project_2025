@@ -16,6 +16,7 @@
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.0" />
     <PackageVersion Include="EnvDTE" Version="17.14.40260" />
     <PackageVersion Include="MassTransit" Version="8.4.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0" />
     <PackageVersion Include="MockQueryable.Core" Version="10.0.1" />
     <PackageVersion Include="MockQueryable.Moq" Version="10.0.1" />

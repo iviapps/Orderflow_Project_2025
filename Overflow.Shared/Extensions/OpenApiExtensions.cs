@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 
 
-namespace Orderflow.Identity.Extensions;
+namespace Orderflow.Shared.Extensions;
 
 public static class OpenApiExtensions
 {

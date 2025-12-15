@@ -1,21 +1,59 @@
+using Asp.Versioning;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Orderflow.Shared.Extensions;
 using Orderflow.Orders.Clients;
 using Orderflow.Orders.Data;
 using Orderflow.Orders.Services;
-using Orderflow.Shared.Extensions;
+using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ============================================
+// ASPIRE SERVICE DEFAULTS
+// ============================================
 builder.AddServiceDefaults();
 
-// Add services to the container.
+// ============================================
+// OPENAPI / SCALAR + SEGURIDAD JWT EN DOCS
+// ============================================
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.ConfigureDocumentInfo(
+        "Orderflow Orders API V1",
+        "v1",
+        "Orders API using Controllers with JWT Bearer authentication");
 
-// Add PostgreSQL DbContext
+    options.AddJwtBearerSecurity();
+    options.FilterByApiVersion("v1");
+});
+
+// ============================================
+// API VERSIONING (Asp.Versioning)
+// ============================================
+builder.Services
+    .AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+        options.ApiVersionReader = new UrlSegmentApiVersionReader(); // /api/v{version}/...
+    })
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+// ============================================
+// DATABASE (PostgreSQL)
+// ============================================
 builder.AddNpgsqlDbContext<OrdersDbContext>("ordersdb");
 
-// Configure MassTransit with RabbitMQ for event publishing
+// ============================================
+// MASS TRANSIT + RABBITMQ
+// ============================================
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
@@ -24,41 +62,45 @@ builder.Services.AddMassTransit(x =>
         var connectionString = configuration.GetConnectionString("messaging");
 
         if (!string.IsNullOrEmpty(connectionString))
-        {
             cfg.Host(new Uri(connectionString));
-        }
 
         cfg.ConfigureEndpoints(context);
     });
 });
 
-// Add HttpClient for Catalog service
+// ============================================
+// HTTP CLIENTS
+// ============================================
 builder.Services.AddHttpClient("catalog", client =>
 {
     client.BaseAddress = new Uri("https+http://orderflow-catalog");
 });
-// Register Catalog Client
 builder.Services.AddScoped<ICatalogClient, CatalogClient>();
 
-
+// ============================================
 // JWT Authentication (shared across all microservices)
+// ============================================
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// Register Order service
-
-
-// Register services
+// ============================================
+// SERVICES
+// ============================================
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// ============================================
+// CONTROLLERS + JSON ENUMS AS STRING
+// ============================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
-// Auto-migrate database in development
+
+// ============================================
+// DEV ONLY: MIGRATIONS + OPENAPI + SCALAR
+// ============================================
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -66,14 +108,27 @@ if (app.Environment.IsDevelopment())
     await db.Database.MigrateAsync();
 
     app.MapOpenApi();
-}
 
-app.MapDefaultEndpoints();
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("Orderflow Orders API")
+            .AddDocument("v1", "V1 - Controllers", "/openapi/v1.json", isDefault: true);
+    });
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Orderflow Orders API V1");
+    });
+}
 
 app.UseHttpsRedirection();
 
+//FIX: si tienes JWT, necesitas Authentication antes de Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapDefaultEndpoints();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

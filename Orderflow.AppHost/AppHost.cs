@@ -88,14 +88,14 @@ var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("orderflow-ap
 //// ============================================
 //// FRONTEND - React App
 //// ============================================
-//// Frontend communicates ONLY with API Gateway (not directly with microservices)
-//var frontendApp = builder.AddNpmApp("Orderflow-web", "../Orderflow.web", "dev")
-//    .WithReference(apiGateway) // Frontend talks to Gateway, not to services directly
-//    .WithEnvironment("VITE_API_GATEWAY_URL", apiGateway.GetEndpoint("https")) // Gateway URL for frontend
-//    .WithHttpEndpoint(env: "VITE_PORT") // Vite uses VITE_PORT environment variable
-//    .WaitFor(apiGateway)
-//    .WithExternalHttpEndpoints() // Make endpoint accessible via Aspire dashboard
-//    .PublishAsDockerFile();
+// Frontend communicates ONLY with API Gateway (not directly with microservices)
+var frontendApp = builder.AddNpmApp("Orderflow-web", "../Orderflow.web", "dev")
+    .WithReference(apiGateway) // Frontend talks to Gateway, not to services directly
+    .WithEnvironment("VITE_API_GATEWAY_URL", apiGateway.GetEndpoint("https")) // Gateway URL for frontend
+    .WithHttpEndpoint(env: "VITE_PORT") // Vite uses VITE_PORT environment variable
+    .WaitFor(apiGateway)
+    .WithExternalHttpEndpoints() // Make endpoint accessible via Aspire dashboard
+    .PublishAsDockerFile();
 
 
 

@@ -1,47 +1,106 @@
-    using Microsoft.EntityFrameworkCore;
-    using Orderflow.Catalog.Data;
-    using Orderflow.Catalog.Services;
-    using Orderflow.Shared.Extensions;
-    using System.Text.Json.Serialization;
+using Asp.Versioning;
+using Microsoft.EntityFrameworkCore;
+using Orderflow.Catalog.Data;
+using Orderflow.Catalog.Services;
+using Orderflow.Shared.Extensions; // AddJwtAuthentication + OpenApiExtensions (si la moviste a Shared)
+using Scalar.AspNetCore;
+using System.Text.Json.Serialization;
 
-    var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-    builder.AddServiceDefaults();
+// ============================================
+// ASPIRE SERVICE DEFAULTS
+// ============================================
+builder.AddServiceDefaults();
 
-    // Add PostgreSQL DbContext
-    builder.AddNpgsqlDbContext<CatalogDbContext>("catalogdb");
+// ============================================
+// OPENAPI / SCALAR + SEGURIDAD JWT EN DOCS
+// ============================================
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.ConfigureDocumentInfo(
+        "Orderflow Catalog API V1",
+        "v1",
+        "Catalog API using Controllers with JWT Bearer authentication");
 
-    // JWT Authentication (shared across all microservices)
-    builder.Services.AddJwtAuthentication(builder.Configuration);
+    options.AddJwtBearerSecurity();
+    options.FilterByApiVersion("v1");
+});
 
-    //Register services
-    builder.Services.AddScoped<ICategoryService, CategoryService>();
-    builder.Services.AddScoped<IProductService, ProductService>();
-    builder.Services.AddScoped<IStockService, StockService>();
-
-    builder.Services.AddControllers()
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
-    builder.Services.AddOpenApi();
-
-    var app = builder.Build();
-
-    // Auto-migrate database in development
-    if (app.Environment.IsDevelopment())
+// ============================================
+// API VERSIONING (Asp.Versioning)
+// ============================================
+builder.Services
+    .AddApiVersioning(options =>
     {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-        await db.Database.MigrateAsync();
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+        options.ApiVersionReader = new UrlSegmentApiVersionReader(); // /api/v{version}/...
+    })
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
 
-        app.MapOpenApi();
-    }
+// ============================================
+// DATABASE (PostgreSQL)
+// ============================================
+builder.AddNpgsqlDbContext<CatalogDbContext>("catalogdb");
 
-    app.MapDefaultEndpoints();
-    app.UseHttpsRedirection();
-    app.UseAuthentication();
-    app.UseAuthorization();
-    app.MapControllers();
+// ============================================
+// JWT Authentication (shared across all microservices)
+// ============================================
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
-    await app.RunAsync();
+// ============================================
+// SERVICES
+// ============================================
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IStockService, StockService>();
+
+// ============================================
+// CONTROLLERS + JSON ENUMS AS STRING
+// ============================================
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+var app = builder.Build();
+
+// ============================================
+// DEV ONLY: MIGRATIONS + OPENAPI + SCALAR
+// ============================================
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    await db.Database.MigrateAsync();
+
+    app.MapOpenApi();
+
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("Orderflow Catalog API")
+            .AddDocument("v1", "V1 - Controllers", "/openapi/v1.json", isDefault: true);
+    });
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Orderflow Catalog API V1");
+    });
+}
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapDefaultEndpoints();
+app.MapControllers();
+
+await app.RunAsync();

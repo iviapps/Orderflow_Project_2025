@@ -12,3 +12,5 @@ export const config = {
   apiBaseUrl: gatewayUrl,
   apiPrefix: "/api/v1", // fijamos v1 en frontend
 };
+
+console.log("Gateway URL (Aspire):", import.meta.env.VITE_API_GATEWAY_URL);
