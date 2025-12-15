@@ -82,7 +82,7 @@ namespace Orderflow.Identity.Services.Auth
                 return AuthResult<RegisterResponse>.Failure(
                     "A user with this email already exists");
             }
-
+            //esta es la razón por la que el usuario se adjudica automaticamente. 
             var userName = request.Email.Split('@')[0];
 
             var user = new IdentityUser
