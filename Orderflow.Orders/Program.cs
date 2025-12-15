@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Orderflow.Orders.Clients;
 using Orderflow.Orders.Data;
 using Orderflow.Orders.Services;
 using Orderflow.Shared.Extensions;
@@ -36,6 +37,9 @@ builder.Services.AddHttpClient("catalog", client =>
 {
     client.BaseAddress = new Uri("https+http://orderflow-catalog");
 });
+// Register Catalog Client
+builder.Services.AddScoped<ICatalogClient, CatalogClient>();
+
 
 // JWT Authentication (shared across all microservices)
 builder.Services.AddJwtAuthentication(builder.Configuration);
