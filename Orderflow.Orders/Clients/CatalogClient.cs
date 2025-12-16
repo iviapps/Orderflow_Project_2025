@@ -31,7 +31,7 @@ public class CatalogClient(IHttpClientFactory httpClientFactory, ILogger<Catalog
         {
             var response = await _http.PostAsJsonAsync(
                 $"/api/v1/products/{productId}/stock/reserve",
-                new { Quantity = quantity });  // ← CAMBIO: Quantity con mayúscula
+                new { Quantity = quantity });  // ✅ CORREGIDO: Quantity con mayúscula
 
             if (!response.IsSuccessStatusCode)
             {
@@ -55,7 +55,7 @@ public class CatalogClient(IHttpClientFactory httpClientFactory, ILogger<Catalog
         {
             var response = await _http.PostAsJsonAsync(
                 $"/api/v1/products/{productId}/stock/release",
-                new { Quantity = quantity });  // ← CAMBIO: Quantity con mayúscula
+                new { Quantity = quantity });  // ✅ CORREGIDO: Quantity con mayúscula
 
             if (!response.IsSuccessStatusCode)
             {

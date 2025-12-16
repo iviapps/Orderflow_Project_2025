@@ -83,7 +83,7 @@ public class OrderService(
 
                 // Reserve stock atomically via HTTP
                 var reserveResponse = await catalogClient.PostAsJsonAsync(
-                    $"/api/v1/products/{item.ProductId}/reserve",
+                    $"/api/v1/products/{item.ProductId}/stock/reserve",  // ✅ CORREGIDO
                     new { Quantity = item.Quantity });
 
                 if (!reserveResponse.IsSuccessStatusCode)
@@ -146,7 +146,7 @@ public class OrderService(
             try
             {
                 await catalogClient.PostAsJsonAsync(
-                    $"/api/v1/products/{productId}/release",
+                    $"/api/v1/products/{productId}/stock/release",  // ✅ CORREGIDO
                     new { Quantity = quantity });
             }
             catch (Exception ex)
@@ -184,7 +184,7 @@ public class OrderService(
             try
             {
                 var response = await catalogClient.PostAsJsonAsync(
-                    $"/api/v1/products/{item.ProductId}/release",
+                    $"/api/v1/products/{item.ProductId}/stock/release",  // ✅ CORREGIDO
                     new { Quantity = item.Quantity });
 
                 if (!response.IsSuccessStatusCode)
@@ -220,7 +220,6 @@ public class OrderService(
         return ServiceResult.Success("Order cancelled successfully");
     }
 
-    // Reemplaza SOLO este método en tu OrderService existente
     public async Task<ServiceResult<PaginatedResult<OrderListResponse>>> GetAllAsync(
         OrderStatus? status = null,
         string? userId = null,
@@ -249,6 +248,7 @@ public class OrderService(
 
         return ServiceResult<PaginatedResult<OrderListResponse>>.Success(paginatedResult);
     }
+
     public async Task<ServiceResult<OrderResponse>> GetByIdForAdminAsync(int id)
     {
         var order = await db.Orders
