@@ -5,18 +5,25 @@ on:
     branches:
       - main
       - develop
+      - feature/mac-only
     paths:
       - 'Orderflow.Identity/**'
       - 'Orderflow.ServiceDefaults/**'
       - 'Overflow.Shared/**'
       - 'Directory.Packages.props'
       - '.github/workflows/identity-api-docker.yml'
+
   pull_request:
     branches:
       - main
       - develop
     paths:
       - 'Orderflow.Identity/**'
+      - 'Orderflow.ServiceDefaults/**'
+      - 'Overflow.Shared/**'
+      - 'Directory.Packages.props'
+      - '.github/workflows/identity-api-docker.yml'
+
   workflow_dispatch:
 
 env:
