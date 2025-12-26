@@ -530,13 +530,18 @@ El frontend es una **Single Page Application (SPA)** que se comunica **exclusiva
 
 ### Configuración de Conexión
 
-El frontend utiliza variables de entorno para conectarse al gateway:
+El frontend obtiene la URL del gateway automáticamente desde **.NET Aspire** via variables de entorno:
 
-```bash
-# .env
-VITE_API_GATEWAY_URL=http://localhost:5000
-VITE_PORT=5173
+ 
+
+```typescript
+
+// config.ts - La variable es inyectada por Aspire
+
+const gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+
 ```
+> **Nota:** No se requiere archivo `.env` manual. Aspire configura `VITE_API_GATEWAY_URL` automáticamente al orquestar los servicios.
 
 ### Patrón de Comunicación
 
