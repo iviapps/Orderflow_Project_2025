@@ -1,41 +1,41 @@
-# OrderFlow - Sistema de Gestión de Pedidos E-Commerce
+# OrderFlow - E-Commerce Order Management System
 
-OrderFlow es una plataforma de comercio electrónico moderna construida con **arquitectura de microservicios** usando **.NET 10** para el backend y **React 19** para el frontend, orquestados con **.NET Aspire**.
+OrderFlow is a modern e-commerce platform built with **microservices architecture** using **.NET 10** for the backend and **React 19** for the frontend, orchestrated with **.NET Aspire**.
 
-## Tabla de Contenidos
+## Table of Contents
 
-- [Arquitectura General](#arquitectura-general)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Microservicios](#microservicios)
-- [Patrones de Comunicación](#patrones-de-comunicación)
-- [Flujos de Negocio (Workflows)](#flujos-de-negocio-workflows)
+- [General Architecture](#general-architecture)
+- [Project Structure](#project-structure)
+- [Microservices](#microservices)
+- [Communication Patterns](#communication-patterns)
+- [Business Workflows](#business-workflows)
 - [API Gateway](#api-gateway)
 - [Frontend](#frontend)
-- [Infraestructura](#infraestructura)
-- [Observabilidad](#observabilidad)
-- [Instalación y Ejecución](#instalación-y-ejecución)
+- [Infrastructure](#infrastructure)
+- [Observability](#observability)
+- [Installation and Execution](#installation-and-execution)
 - [Testing](#testing)
-- [Stack Tecnológico](#stack-tecnológico)
+- [Technology Stack](#technology-stack)
 
 ---
 
-## Arquitectura General
+## General Architecture
 
-OrderFlow implementa una arquitectura de **microservicios desacoplados** con el patrón **Database-per-Service**. Cada servicio tiene su propia base de datos PostgreSQL, garantizando aislamiento total de datos.
+OrderFlow implements a **decoupled microservices architecture** with the **Database-per-Service** pattern. Each service has its own PostgreSQL database, ensuring complete data isolation.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      FRONTEND (React 19)                        │
-│                  Aplicación SPA - En desarrollo                 │
+│                  SPA Application - In development               │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              │ HTTP/JSON + JWT Auth
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│               API GATEWAY (YARP) - Puerto 5000                  │
+│               API GATEWAY (YARP) - Port 5000                    │
 │  ┌─────────────┐ ┌──────────────┐ ┌────────────────────────┐   │
 │  │Rate Limiting│ │JWT Validation│ │ Service Discovery      │   │
-│  │   (Redis)   │ │ Centralizada │ │ (.NET Aspire)          │   │
+│  │   (Redis)   │ │ Centralized  │ │ (.NET Aspire)          │   │
 │  └─────────────┘ └──────────────┘ └────────────────────────┘   │
 └────────┬────────────────────┬────────────────────┬──────────────┘
          │                    │                    │
@@ -66,118 +66,118 @@ OrderFlow implementa una arquitectura de **microservicios desacoplados** con el 
                                          └─────────┘
 ```
 
-### Principios de Diseño
+### Design Principles
 
-- **Database-per-Service**: Cada microservicio tiene su propia base de datos PostgreSQL
-- **Event-Driven Architecture**: Comunicación asíncrona via RabbitMQ para operaciones no críticas
-- **API Gateway Pattern**: Punto de entrada único con autenticación centralizada
-- **Service Discovery**: Descubrimiento automático de servicios con .NET Aspire
-- **Observability-First**: OpenTelemetry integrado para trazas, métricas y logs
+- **Database-per-Service**: Each microservice has its own PostgreSQL database
+- **Event-Driven Architecture**: Asynchronous communication via RabbitMQ for non-critical operations
+- **API Gateway Pattern**: Single entry point with centralized authentication
+- **Service Discovery**: Automatic service discovery with .NET Aspire
+- **Observability-First**: Integrated OpenTelemetry for traces, metrics, and logs
 
 ---
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 Orderflow_Project_2025/
 │
-├── Orderflow.AppHost/               # Orquestación .NET Aspire
-│   └── AppHost.cs                   # Configuración de servicios e infraestructura
+├── Orderflow.AppHost/               # .NET Aspire Orchestration
+│   └── AppHost.cs                   # Services and infrastructure configuration
 │
-├── Orderflow.ServiceDefaults/       # Configuración compartida de servicios
+├── Orderflow.ServiceDefaults/       # Shared service configuration
 │   └── Extensions.cs                # OpenTelemetry, Health Checks, etc.
 │
-├── Orderflow.Shared/                # Código compartido entre servicios
+├── Orderflow.Shared/                # Shared code between services
 │   ├── DTOs/                        # Data Transfer Objects
-│   ├── Events/                      # Eventos de integración (RabbitMQ)
+│   ├── Events/                      # Integration Events (RabbitMQ)
 │   │   ├── UserRegisteredEvent.cs
 │   │   ├── OrderCreatedEvent.cs
 │   │   └── OrderCancelledEvent.cs
-│   └── Extensions/                  # Extensiones compartidas
+│   └── Extensions/                  # Shared extensions
 │
 ├── Orderflow.API.Gateway/           # API Gateway (YARP Reverse Proxy)
-│   ├── Program.cs                   # Configuración del gateway
-│   └── appsettings.json             # Rutas y clusters YARP
+│   ├── Program.cs                   # Gateway configuration
+│   └── appsettings.json             # YARP routes and clusters
 │
-├── Orderflow.Identity/              # Microservicio de Autenticación
+├── Orderflow.Identity/              # Authentication Microservice
 │   ├── Controllers/                 # AuthController, UsersController
 │   ├── Services/                    # AuthService, UserService, TokenService
 │   ├── Data/                        # IdentityDbContext, Migrations
 │   └── Program.cs
 │
-├── Orderflow.Catalog/               # Microservicio de Catálogo
+├── Orderflow.Catalog/               # Catalog Microservice
 │   ├── Controllers/                 # ProductsController, CategoriesController
 │   ├── Services/                    # ProductService, CategoryService
 │   ├── Data/                        # CatalogDbContext, Entities
 │   └── Program.cs
 │
-├── Orderflow.Orders/                # Microservicio de Pedidos
+├── Orderflow.Orders/                # Orders Microservice
 │   ├── Controllers/                 # OrdersController
 │   ├── Services/                    # OrderService
 │   ├── Clients/                     # CatalogClient (HTTP client)
 │   ├── Data/                        # OrdersDbContext, Entities
 │   └── Program.cs
 │
-├── Orderflow.Notifications/         # Worker Service de Notificaciones
-│   ├── Consumers/                   # Consumidores MassTransit
+├── Orderflow.Notifications/         # Notifications Worker Service
+│   ├── Consumers/                   # MassTransit Consumers
 │   │   ├── UserRegisteredConsumer.cs
 │   │   ├── OrderCreatedConsumer.cs
 │   │   └── OrderCancelledConsumer.cs
 │   ├── Services/                    # EmailService
 │   └── Program.cs
 │
-├── Orderflow.Web/                   # Frontend React (En desarrollo)
+├── Orderflow.Web/                   # React Frontend (In development)
 │
-├── Orderflow.Api.Identity.Test/     # Tests unitarios Identity
-├── TestOrderflow.Console/           # Tests de integración
+├── Orderflow.Api.Identity.Test/     # Identity Unit Tests
+├── TestOrderflow.Console/           # Integration Tests
 │
-├── docker-compose.yaml              # Infraestructura Docker
-├── Directory.Packages.props         # Gestión centralizada de versiones NuGet
-└── ProyectoOrderflow.sln            # Solución .NET
+├── docker-compose.yaml              # Docker Infrastructure
+├── Directory.Packages.props         # Centralized NuGet version management
+└── ProyectoOrderflow.sln            # .NET Solution
 ```
 
 ---
 
-## Microservicios
+## Microservices
 
-### 1. Orderflow.Identity (Puerto 5001)
+### 1. Orderflow.Identity (Port 5001)
 
-**Responsabilidad**: Autenticación, autorización y gestión de usuarios.
+**Responsibility**: Authentication, authorization, and user management.
 
-| Funcionalidad | Descripción |
-|---------------|-------------|
-| Autenticación JWT | Generación y validación de tokens |
-| ASP.NET Core Identity | Gestión de usuarios y roles |
-| CRUD de Usuarios | Operaciones administrativas |
-| Gestión de Roles | Admin, Customer |
-| Bloqueo de Cuentas | Seguridad y control de acceso |
+| Feature | Description |
+|---------|-------------|
+| JWT Authentication | Token generation and validation |
+| ASP.NET Core Identity | User and role management |
+| User CRUD | Administrative operations |
+| Role Management | Admin, Customer |
+| Account Locking | Security and access control |
 
-**Endpoints Principales:**
+**Main Endpoints:**
 ```
-POST   /api/v1/auth/register           # Registro público
+POST   /api/v1/auth/register           # Public registration
 POST   /api/v1/auth/login              # Login → JWT Token
-GET    /api/v1/users/me                # Perfil usuario (auth)
-PUT    /api/v1/users/me                # Actualizar perfil (auth)
-GET    /api/v1/admin/users             # Listar usuarios (admin)
-POST   /api/v1/admin/users/{id}/lock   # Bloquear usuario (admin)
+GET    /api/v1/users/me                # User profile (auth)
+PUT    /api/v1/users/me                # Update profile (auth)
+GET    /api/v1/admin/users             # List users (admin)
+POST   /api/v1/admin/users/{id}/lock   # Lock user (admin)
 ```
 
-**Base de Datos**: `identitydb`
+**Database**: `identitydb`
 
 ---
 
-### 2. Orderflow.Catalog (Puerto 5002)
+### 2. Orderflow.Catalog (Port 5002)
 
-**Responsabilidad**: Gestión de productos, categorías e inventario.
+**Responsibility**: Product, category, and inventory management.
 
-| Funcionalidad | Descripción |
-|---------------|-------------|
-| CRUD Productos | Gestión completa de productos |
-| Categorías | Organización del catálogo |
-| Control de Stock | Disponibilidad en tiempo real |
-| Reserva de Inventario | Para procesamiento de pedidos |
+| Feature | Description |
+|---------|-------------|
+| Product CRUD | Complete product management |
+| Categories | Catalog organization |
+| Stock Control | Real-time availability |
+| Inventory Reservation | For order processing |
 
-**Modelo de Datos:**
+**Data Model:**
 ```
 Category (1) ──── (N) Product (1) ──── (1) Stock
     │                     │                  │
@@ -188,77 +188,77 @@ Category (1) ──── (N) Product (1) ──── (1) Stock
                           └─ CategoryId
 ```
 
-**Endpoints Principales:**
+**Main Endpoints:**
 ```
-GET    /api/v1/categories                    # Listar categorías
-GET    /api/v1/products                      # Listar productos (paginado)
-GET    /api/v1/products/{id}                 # Detalle de producto
-POST   /api/v1/products/{id}/stock/reserve   # Reservar stock (interno)
-POST   /api/v1/products/{id}/stock/release   # Liberar stock (interno)
+GET    /api/v1/categories                    # List categories
+GET    /api/v1/products                      # List products (paginated)
+GET    /api/v1/products/{id}                 # Product details
+POST   /api/v1/products/{id}/stock/reserve   # Reserve stock (internal)
+POST   /api/v1/products/{id}/stock/release   # Release stock (internal)
 ```
 
-**Base de Datos**: `catalogdb`
+**Database**: `catalogdb`
 
 ---
 
-### 3. Orderflow.Orders (Puerto 5003)
+### 3. Orderflow.Orders (Port 5003)
 
-**Responsabilidad**: Gestión del ciclo de vida completo de pedidos.
+**Responsibility**: Complete order lifecycle management.
 
-| Funcionalidad | Descripción |
-|---------------|-------------|
-| Creación de Pedidos | Con validación de stock |
-| Estados de Pedido | Transiciones controladas |
-| Cancelación | Liberación automática de stock |
-| Historial | Por usuario y administrador |
+| Feature | Description |
+|---------|-------------|
+| Order Creation | With stock validation |
+| Order States | Controlled transitions |
+| Cancellation | Automatic stock release |
+| History | By user and administrator |
 
-**Estados del Pedido:**
+**Order States:**
 ```
 Pending → Confirmed → Processing → Shipped → Delivered
    ↓           ↓
 Cancelled  Cancelled
 ```
 
-**Endpoints Principales:**
+**Main Endpoints:**
 ```
-POST   /api/v1/orders                        # Crear pedido (auth)
-GET    /api/v1/orders                        # Mis pedidos (auth)
-GET    /api/v1/orders/{id}                   # Detalle pedido (auth)
-POST   /api/v1/orders/{id}/cancel            # Cancelar pedido (auth)
-GET    /api/v1/admin/orders                  # Todos los pedidos (admin)
-PATCH  /api/v1/admin/orders/{id}/status      # Cambiar estado (admin)
+POST   /api/v1/orders                        # Create order (auth)
+GET    /api/v1/orders                        # My orders (auth)
+GET    /api/v1/orders/{id}                   # Order details (auth)
+POST   /api/v1/orders/{id}/cancel            # Cancel order (auth)
+GET    /api/v1/admin/orders                  # All orders (admin)
+PATCH  /api/v1/admin/orders/{id}/status      # Change status (admin)
 ```
 
-**Base de Datos**: `ordersdb`
+**Database**: `ordersdb`
 
 ---
 
 ### 4. Orderflow.Notifications (Worker Service)
 
-**Responsabilidad**: Procesamiento asíncrono de notificaciones por email.
+**Responsibility**: Asynchronous email notification processing.
 
-| Funcionalidad | Descripción |
-|---------------|-------------|
-| Consumidor RabbitMQ | Escucha eventos con MassTransit |
-| Envío de Emails | Via MailKit/SMTP |
-| Reintentos Automáticos | Política: 1s, 5s, 15s, 30s |
+| Feature | Description |
+|---------|-------------|
+| RabbitMQ Consumer | Listens to events with MassTransit |
+| Email Sending | Via MailKit/SMTP |
+| Automatic Retries | Policy: 1s, 5s, 15s, 30s |
 
-**Eventos Procesados:**
+**Processed Events:**
 ```
-UserRegisteredEvent   → Email de bienvenida
-OrderCreatedEvent     → Confirmación de pedido
-OrderCancelledEvent   → Notificación de cancelación
+UserRegisteredEvent   → Welcome email
+OrderCreatedEvent     → Order confirmation
+OrderCancelledEvent   → Cancellation notification
 ```
 
-**No expone endpoints HTTP** (es un worker en background)
+**Does not expose HTTP endpoints** (it's a background worker)
 
 ---
 
-## Patrones de Comunicación
+## Communication Patterns
 
-### Comunicación Síncrona (HTTP/REST)
+### Synchronous Communication (HTTP/REST)
 
-Utilizada para operaciones que requieren respuesta inmediata y validación en tiempo real.
+Used for operations requiring immediate response and real-time validation.
 
 ```
 ┌──────────────┐          HTTP Request           ┌───────────────┐
@@ -267,18 +267,18 @@ Utilizada para operaciones que requieren respuesta inmediata y validación en ti
 └──────────────┘          HTTP Response          └───────────────┘
 ```
 
-**Casos de Uso:**
-- Validar existencia de productos
-- Verificar disponibilidad de stock
-- Reservar inventario para un pedido
-- Liberar stock en cancelación
+**Use Cases:**
+- Validate product existence
+- Verify stock availability
+- Reserve inventory for an order
+- Release stock on cancellation
 
-**Implementación:**
+**Implementation:**
 ```csharp
-// CatalogClient.cs en Orders Service
+// CatalogClient.cs in Orders Service
 private readonly HttpClient _http = httpClientFactory.CreateClient("catalog");
 
-// Configuración con Service Discovery
+// Configuration with Service Discovery
 builder.Services.AddHttpClient("catalog", client =>
 {
     client.BaseAddress = new Uri("https+http://orderflow-catalog");
@@ -287,9 +287,9 @@ builder.Services.AddHttpClient("catalog", client =>
 
 ---
 
-### Comunicación Asíncrona (RabbitMQ + MassTransit)
+### Asynchronous Communication (RabbitMQ + MassTransit)
 
-Utilizada para operaciones desacopladas, notificaciones y procesamiento en background.
+Used for decoupled operations, notifications, and background processing.
 
 ```
 ┌──────────────┐     Publish Event      ┌───────────┐     Consume      ┌───────────────┐
@@ -299,7 +299,7 @@ Utilizada para operaciones desacopladas, notificaciones y procesamiento en backg
 └──────────────┘                        └───────────┘                  └───────────────┘
 ```
 
-**Eventos de Integración:**
+**Integration Events:**
 ```csharp
 // Orderflow.Shared/Events/
 public interface IIntegrationEvent
@@ -313,21 +313,21 @@ public record OrderCreatedEvent(int OrderId, string UserId, IEnumerable<OrderIte
 public record OrderCancelledEvent(int OrderId, string UserId, string Reason);
 ```
 
-**Ventajas:**
-- Desacoplamiento total entre servicios
-- Procesamiento en background
-- Reintentos automáticos con backoff exponencial
-- Tolerancia a fallos
+**Advantages:**
+- Complete decoupling between services
+- Background processing
+- Automatic retries with exponential backoff
+- Fault tolerance
 
 ---
 
-## Flujos de Negocio (Workflows)
+## Business Workflows
 
-### 1. Registro de Usuario
+### 1. User Registration
 
 ```
 ┌─────────┐  POST /api/v1/auth/register  ┌────────────┐
-│ Cliente │─────────────────────────────►│API Gateway │
+│ Client  │─────────────────────────────►│API Gateway │
 └─────────┘                              └─────┬──────┘
                                                │
                                                ▼
@@ -340,7 +340,7 @@ public record OrderCancelledEvent(int OrderId, string UserId, string Reason);
                     │                          │                          │
                     ▼                          ▼                          ▼
              ┌────────────┐           ┌──────────────┐           ┌──────────────┐
-             │  Crear en  │           │   Generar    │           │   Publicar   │
+             │  Create in │           │   Generate   │           │   Publish    │
              │  identitydb│           │  JWT Token   │           │UserRegistered│
              └────────────┘           └──────────────┘           │   Event      │
                                                                  └──────┬───────┘
@@ -353,20 +353,20 @@ public record OrderCancelledEvent(int OrderId, string UserId, string Reason);
                                                                         │
                                                                         ▼
                                                                  ┌──────────────┐
-                                                                 │ Email de     │
-                                                                 │ Bienvenida   │
+                                                                 │   Welcome    │
+                                                                 │    Email     │
                                                                  └──────────────┘
 ```
 
 ---
 
-### 2. Creación de Pedido (Workflow Completo)
+### 2. Order Creation (Complete Workflow)
 
 ```
 ┌─────────┐  POST /api/v1/orders + JWT   ┌────────────┐
-│ Cliente │─────────────────────────────►│API Gateway │
+│ Client  │─────────────────────────────►│API Gateway │
 └─────────┘                              └─────┬──────┘
-                                               │ Valida JWT
+                                               │ Validates JWT
                                                │ Rate Limit
                                                ▼
                                         ┌──────────────┐
@@ -378,22 +378,22 @@ public record OrderCancelledEvent(int OrderId, string UserId, string Reason);
            │                                   │
            ▼                                   ▼
     ┌──────────────┐                  ┌──────────────────┐
-    │   Validar    │  HTTP Request   │     Catalog      │
-    │   Productos  │────────────────►│     Service      │
+    │   Validate   │  HTTP Request   │     Catalog      │
+    │   Products   │────────────────►│     Service      │
     │              │◄────────────────│                  │
     └──────────────┘  Product Data   └─────────┬────────┘
                                                │
                                                ▼
                                       ┌──────────────────┐
-                                      │  Reservar Stock  │
-                                      │  en catalogdb    │
+                                      │  Reserve Stock   │
+                                      │  in catalogdb    │
                                       └─────────┬────────┘
                                                 │
                     ┌───────────────────────────┤
                     │                           │
                     ▼                           ▼
              ┌────────────┐            ┌──────────────────┐
-             │ Crear en   │            │    Publicar      │
+             │ Create in  │            │    Publish       │
              │  ordersdb  │            │ OrderCreatedEvent│
              │            │            └────────┬─────────┘
              └────────────┘                     │
@@ -405,14 +405,14 @@ public record OrderCancelledEvent(int OrderId, string UserId, string Reason);
                                                 │
                                                 ▼
                                         ┌───────────────┐
-                                        │    Email de   │
-                                        │  Confirmación │
+                                        │ Confirmation  │
+                                        │    Email      │
                                         └───────────────┘
 ```
 
 ---
 
-### 3. Cancelación de Pedido
+### 3. Order Cancellation
 
 ```
 POST /api/v1/orders/{id}/cancel
@@ -421,9 +421,9 @@ POST /api/v1/orders/{id}/cancel
 ┌──────────────────────────────────────────────────────────────┐
 │                      Orders Service                           │
 │                                                               │
-│  1. Validar que el usuario es propietario del pedido         │
-│  2. Validar que el estado permite cancelación                │
-│     (Pending o Confirmed)                                     │
+│  1. Validate that the user is the order owner                │
+│  2. Validate that the status allows cancellation             │
+│     (Pending or Confirmed)                                    │
 │                                                               │
 └─────────────────────────────┬────────────────────────────────┘
                               │
@@ -431,9 +431,9 @@ POST /api/v1/orders/{id}/cancel
 ┌──────────────────────────────────────────────────────────────┐
 │                     Catalog Service                           │
 │                                                               │
-│  3. Liberar stock reservado para cada item                   │
-│     QuantityReserved -= cantidad                              │
-│     QuantityAvailable += cantidad                             │
+│  3. Release reserved stock for each item                     │
+│     QuantityReserved -= quantity                              │
+│     QuantityAvailable += quantity                             │
 │                                                               │
 └─────────────────────────────┬────────────────────────────────┘
                               │
@@ -441,8 +441,8 @@ POST /api/v1/orders/{id}/cancel
 ┌──────────────────────────────────────────────────────────────┐
 │                      Orders Service                           │
 │                                                               │
-│  4. Actualizar estado a "Cancelled"                          │
-│  5. Publicar OrderCancelledEvent a RabbitMQ                  │
+│  4. Update status to "Cancelled"                             │
+│  5. Publish OrderCancelledEvent to RabbitMQ                  │
 │                                                               │
 └─────────────────────────────┬────────────────────────────────┘
                               │
@@ -450,8 +450,8 @@ POST /api/v1/orders/{id}/cancel
 ┌──────────────────────────────────────────────────────────────┐
 │                   Notifications Worker                        │
 │                                                               │
-│  6. Consumir OrderCancelledEvent                             │
-│  7. Enviar email de cancelación                              │
+│  6. Consume OrderCancelledEvent                              │
+│  7. Send cancellation email                                  │
 │                                                               │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -460,40 +460,40 @@ POST /api/v1/orders/{id}/cancel
 
 ## API Gateway
 
-El **API Gateway** es el punto de entrada único para todas las peticiones del cliente. Implementado con **YARP (Yet Another Reverse Proxy)**.
+The **API Gateway** is the single entry point for all client requests. Implemented with **YARP (Yet Another Reverse Proxy)**.
 
-### Características
+### Features
 
-| Característica | Implementación |
-|----------------|----------------|
+| Feature | Implementation |
+|---------|----------------|
 | Reverse Proxy | YARP 2.3.0 |
 | Rate Limiting | Redis + Sliding Window |
-| Autenticación | JWT Bearer centralizada |
-| Service Discovery | .NET Aspire automático |
-| CORS | Configurado para frontend |
+| Authentication | Centralized JWT Bearer |
+| Service Discovery | Automatic .NET Aspire |
+| CORS | Configured for frontend |
 
-### Políticas de Autorización
+### Authorization Policies
 
-| Política | Descripción | Rutas |
-|----------|-------------|-------|
-| `anonymous` | Sin autenticación | `/api/v1/auth/*`, `/api/v1/products/*`, `/api/v1/categories/*` |
-| `authenticated` | JWT válido requerido | `/api/v1/users/*`, `/api/v1/orders/*` |
-| `admin` | JWT + Rol Admin | `/api/v1/admin/*` |
+| Policy | Description | Routes |
+|--------|-------------|--------|
+| `anonymous` | No authentication | `/api/v1/auth/*`, `/api/v1/products/*`, `/api/v1/categories/*` |
+| `authenticated` | Valid JWT required | `/api/v1/users/*`, `/api/v1/orders/*` |
+| `admin` | JWT + Admin Role | `/api/v1/admin/*` |
 
-### Configuración de Rutas (YARP)
+### Route Configuration (YARP)
 
 ```yaml
-# Rutas de Identity
-/api/v1/auth/*              → Identity Service (anónimo)
-/api/v1/users/*             → Identity Service (autenticado)
+# Identity Routes
+/api/v1/auth/*              → Identity Service (anonymous)
+/api/v1/users/*             → Identity Service (authenticated)
 /api/v1/admin/users/*       → Identity Service (admin)
 
-# Rutas de Catalog
-/api/v1/categories/*        → Catalog Service (anónimo)
-/api/v1/products/*          → Catalog Service (anónimo)
+# Catalog Routes
+/api/v1/categories/*        → Catalog Service (anonymous)
+/api/v1/products/*          → Catalog Service (anonymous)
 
-# Rutas de Orders
-/api/v1/orders/*            → Orders Service (autenticado)
+# Orders Routes
+/api/v1/orders/*            → Orders Service (authenticated)
 /api/v1/admin/orders/*      → Orders Service (admin)
 ```
 
@@ -501,11 +501,11 @@ El **API Gateway** es el punto de entrada único para todas las peticiones del c
 
 ## Frontend
 
-> **Estado: En desarrollo**
+> **Status: In development**
 
-El frontend es una **Single Page Application (SPA)** que se comunica **exclusivamente** con el API Gateway. Nunca se conecta directamente a los microservicios.
+The frontend is a **Single Page Application (SPA)** that communicates **exclusively** with the API Gateway. It never connects directly to the microservices.
 
-### Conexión con el Backend
+### Backend Connection
 
 ```
 ┌──────────────────────┐
@@ -521,38 +521,34 @@ El frontend es una **Single Page Application (SPA)** que se comunica **exclusiva
 │     API Gateway      │
 │   localhost:5000     │
 │                      │
-│  • Valida JWT        │
+│  • Validates JWT     │
 │  • Rate Limiting     │
-│  • Enruta request    │
-│  • CORS habilitado   │
+│  • Routes request    │
+│  • CORS enabled      │
 └──────────────────────┘
 ```
 
-### Configuración de Conexión
+### Connection Configuration
 
-El frontend obtiene la URL del gateway automáticamente desde **.NET Aspire** via variables de entorno:
-
- 
+The frontend automatically obtains the gateway URL from **.NET Aspire** via environment variables:
 
 ```typescript
-
-// config.ts - La variable es inyectada por Aspire
-
+// config.ts - The variable is injected by Aspire
 const gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
-
 ```
-> **Nota:** No se requiere archivo `.env` manual. Aspire configura `VITE_API_GATEWAY_URL` automáticamente al orquestar los servicios.
 
-### Patrón de Comunicación
+> **Note:** No manual `.env` file is required. Aspire automatically configures `VITE_API_GATEWAY_URL` when orchestrating the services.
+
+### Communication Pattern
 
 ```typescript
-// Configuración base de Axios
+// Axios base configuration
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_GATEWAY_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor para JWT
+// JWT Interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -562,23 +558,23 @@ api.interceptors.request.use((config) => {
 });
 ```
 
-### Stack Tecnológico del Frontend
+### Frontend Technology Stack
 
-| Componente | Tecnología | Versión |
-|------------|------------|---------|
+| Component | Technology | Version |
+|-----------|------------|---------|
 | Framework | React | 19.2.0 |
-| Lenguaje | TypeScript | 5.9.3 |
+| Language | TypeScript | 5.9.3 |
 | Build Tool | Vite (rolldown) | 7.2.5 |
 | Routing | React Router | 7.10.1 |
 | State/Cache | TanStack Query | 5.90.12 |
 | HTTP Client | Axios | 1.13.2 |
-| Estilos | Tailwind CSS | 3.4.17 |
+| Styles | Tailwind CSS | 3.4.17 |
 
 ---
 
-## Infraestructura
+## Infrastructure
 
-### Docker Compose (Desarrollo Manual)
+### Docker Compose (Manual Development)
 
 ```yaml
 services:
@@ -586,7 +582,7 @@ services:
     image: postgres:16
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
-    # Bases de datos: identitydb, catalogdb, ordersdb
+    # Databases: identitydb, catalogdb, ordersdb
 
   redis:
     image: redis:7
@@ -594,9 +590,9 @@ services:
     volumes: [redisdata:/data]
 ```
 
-### .NET Aspire (Recomendado)
+### .NET Aspire (Recommended)
 
-Aspire orquesta automáticamente toda la infraestructura:
+Aspire automatically orchestrates all infrastructure:
 
 ```csharp
 // AppHost.cs
@@ -614,13 +610,13 @@ var rabbitmq = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin();
 
 var maildev = builder.AddContainer("maildev", "maildev/maildev")
-    .WithHttpEndpoint(port: 1080);  // UI para ver emails
+    .WithHttpEndpoint(port: 1080);  // UI for viewing emails
 ```
 
-### Servicios Registrados en Aspire
+### Services Registered in Aspire
 
 ```csharp
-// Cada servicio con sus dependencias
+// Each service with its dependencies
 var identity = builder.AddProject<Projects.Orderflow_Identity>()
     .WithReference(identityDb)
     .WithReference(rabbitmq);
@@ -646,95 +642,95 @@ var gateway = builder.AddProject<Projects.Orderflow_API_Gateway>()
 
 ---
 
-## Observabilidad
+## Observability
 
-El proyecto implementa **OpenTelemetry** para observabilidad completa.
+The project implements **OpenTelemetry** for complete observability.
 
-### Componentes
+### Components
 
-| Tipo | Tecnología | Descripción |
+| Type | Technology | Description |
 |------|------------|-------------|
-| Traces | OpenTelemetry | Seguimiento distribuido de requests |
-| Metrics | OpenTelemetry | Contadores, latencias, errores |
-| Logs | Serilog | Logging estructurado con correlación |
-| Dashboard | .NET Aspire | Visualización integrada |
+| Traces | OpenTelemetry | Distributed request tracking |
+| Metrics | OpenTelemetry | Counters, latencies, errors |
+| Logs | Serilog | Structured logging with correlation |
+| Dashboard | .NET Aspire | Integrated visualization |
 
-### Dashboard de Aspire
+### Aspire Dashboard
 
-Disponible en: `https://localhost:17225`
+Available at: `https://localhost:17225`
 
-Proporciona:
-- Estado en tiempo real de todos los servicios
-- Logs agregados con búsqueda
-- Traces distribuidos entre servicios
-- Métricas de rendimiento
+Provides:
+- Real-time status of all services
+- Aggregated logs with search
+- Distributed traces between services
+- Performance metrics
 - Health checks
 
 ### Health Checks
 
-Cada servicio expone endpoints de salud:
+Each service exposes health endpoints:
 ```
-GET /health       # Estado general
+GET /health       # General status
 GET /alive        # Liveness probe
 GET /ready        # Readiness probe
 ```
 
 ---
 
-## Instalación y Ejecución
+## Installation and Execution
 
-### Requisitos Previos
+### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [Node.js 18+](https://nodejs.org/) (para el frontend)
+- [Node.js 18+](https://nodejs.org/) (for the frontend)
 
-### Opción 1: Con .NET Aspire (Recomendado)
+### Option 1: With .NET Aspire (Recommended)
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone <repository-url>
 cd Orderflow_Project_2025
 
-# Ejecutar con Aspire
+# Run with Aspire
 dotnet run --project Orderflow.AppHost
 ```
 
-**Dashboard de Aspire**: https://localhost:17225
+**Aspire Dashboard**: https://localhost:17225
 
-### Opción 2: Ejecución Manual
+### Option 2: Manual Execution
 
 ```bash
-# 1. Iniciar infraestructura
+# 1. Start infrastructure
 docker-compose up -d
 
-# 2. Ejecutar cada servicio (en terminales separadas)
+# 2. Run each service (in separate terminals)
 dotnet run --project Orderflow.Identity
 dotnet run --project Orderflow.Catalog
 dotnet run --project Orderflow.Orders
 dotnet run --project Orderflow.Notifications
 dotnet run --project Orderflow.API.Gateway
 
-# 3. Ejecutar frontend
+# 3. Run frontend
 cd Orderflow.Web
 npm install
 npm run dev
 ```
 
-### URLs de Acceso
+### Access URLs
 
-| Servicio | URL |
-|----------|-----|
+| Service | URL |
+|---------|-----|
 | API Gateway | http://localhost:5000 |
 | Frontend | http://localhost:5173 |
 | Aspire Dashboard | https://localhost:17225 |
 | MailDev (emails) | http://localhost:1080 |
 | RabbitMQ Management | http://localhost:15672 |
 
-### Documentación de API (Scalar)
+### API Documentation (Scalar)
 
-| Servicio | URL |
-|----------|-----|
+| Service | URL |
+|---------|-----|
 | API Gateway | http://localhost:5000/scalar/v1 |
 | Identity | http://localhost:5001/scalar/v1 |
 | Catalog | http://localhost:5002/scalar/v1 |
@@ -744,107 +740,107 @@ npm run dev
 
 ## Testing
 
-### Tests Unitarios
+### Unit Tests
 
 ```bash
-# Ejecutar todos los tests
+# Run all tests
 dotnet test
 
-# Con cobertura de código
+# With code coverage
 dotnet test --collect:"XPlat Code Coverage"
 
-# Proyecto específico
+# Specific project
 dotnet test Orderflow.Api.Identity.Test
 ```
 
-### Proyectos de Tests
+### Test Projects
 
-| Proyecto | Cobertura |
-|----------|-----------|
+| Project | Coverage |
+|---------|----------|
 | `Orderflow.Api.Identity.Test` | AuthService, UserService, RoleService |
-| `TestOrderflow.Console` | Tests de integración |
+| `TestOrderflow.Console` | Integration tests |
 
-### Stack de Testing
+### Testing Stack
 
-| Componente | Tecnología |
-|------------|------------|
+| Component | Technology |
+|-----------|------------|
 | Framework | NUnit 4.2.2 |
 | Mocking | Moq 4.20.72 |
 | LINQ Mocking | MockQueryable 10.0.1 |
 
 ---
 
-## Stack Tecnológico
+## Technology Stack
 
 ### Backend
 
-| Componente | Tecnología | Versión |
-|------------|------------|---------|
+| Component | Technology | Version |
+|-----------|------------|---------|
 | Framework | .NET | 10.0 |
 | Web Framework | ASP.NET Core | 10.0 |
 | ORM | Entity Framework Core | 10.0 |
-| Base de Datos | PostgreSQL | 16 |
+| Database | PostgreSQL | 16 |
 | Message Broker | RabbitMQ | Latest |
 | Messaging | MassTransit | 8.4.0 |
 | Cache | Redis | 7 |
 | API Gateway | YARP | 2.3.0 |
 | Rate Limiting | RedisRateLimiting | 1.2.0 |
-| Autenticación | JWT Bearer + Identity | 10.0 |
-| Validación | FluentValidation | 12.1.0 |
+| Authentication | JWT Bearer + Identity | 10.0 |
+| Validation | FluentValidation | 12.1.0 |
 | Email | MailKit | 4.12.1 |
 | API Docs | Scalar / OpenAPI | Latest |
-| Observabilidad | OpenTelemetry | 1.14.0 |
-| Orquestación | .NET Aspire | 13.0.0 |
+| Observability | OpenTelemetry | 1.14.0 |
+| Orchestration | .NET Aspire | 13.0.0 |
 
-### Configuración JWT
+### JWT Configuration
 
 ```bash
-Jwt__Secret=<clave-secreta-minimo-32-caracteres>
+Jwt__Secret=<secret-key-minimum-32-characters>
 Jwt__Issuer=Orderflow.Identity
 Jwt__Audience=Orderflow.Api
 Jwt__ExpiryInMinutes=60
 ```
 
-### Credenciales de Desarrollo
+### Development Credentials
 
-| Campo | Valor |
+| Field | Value |
 |-------|-------|
 | Email | admin@admin.com |
 | Password | Test12345. |
-| Rol | Admin |
+| Role | Admin |
 
 ---
 
-## Estado del Proyecto
+## Project Status
 
-### Backend - Completado
+### Backend - Completed
 
-- [x] Microservicio Identity (Autenticación JWT, Roles, CRUD usuarios)
-- [x] Microservicio Catalog (Productos, Categorías, Stock)
-- [x] Microservicio Orders (Pedidos, Estados, Cancelación)
-- [x] Worker Notifications (RabbitMQ, Emails)
+- [x] Identity Microservice (JWT Authentication, Roles, User CRUD)
+- [x] Catalog Microservice (Products, Categories, Stock)
+- [x] Orders Microservice (Orders, States, Cancellation)
+- [x] Notifications Worker (RabbitMQ, Emails)
 - [x] API Gateway (YARP, Rate Limiting, JWT)
-- [x] Integración RabbitMQ/MassTransit
-- [x] PostgreSQL con migraciones
+- [x] RabbitMQ/MassTransit Integration
+- [x] PostgreSQL with migrations
 - [x] OpenTelemetry
-- [x] Tests unitarios
+- [x] Unit tests
 
-### Frontend - En Desarrollo
+### Frontend - In Development
 
-El frontend está en desarrollo activo. Se conecta al API Gateway para consumir los servicios del backend.
-
----
-
-## Licencia
-
-Este proyecto está bajo la licencia MIT.
+The frontend is in active development. It connects to the API Gateway to consume the backend services.
 
 ---
 
-## Contribuir
+## License
 
-1. Fork el repositorio
-2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'feat: nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
+This project is under the MIT license.
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m 'feat: new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
