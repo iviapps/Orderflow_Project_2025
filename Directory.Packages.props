@@ -88,5 +88,9 @@
     <PackageVersion Include="NUnit.Analyzers" Version="4.4.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
+
+	  <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.0" />
+
+
   </ItemGroup>
 </Project>
