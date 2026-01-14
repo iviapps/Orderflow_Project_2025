@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Orderflow.Identity.Data.Entities;
 
 namespace Orderflow.Identity.Services.Auth;
 
@@ -13,7 +13,7 @@ public interface ITokenService
     /// <param name="user">The authenticated user</param>
     /// <param name="roles">User's roles to include in token claims</param>
     /// <returns>JWT token string</returns>
-    Task<string> GenerateAccessTokenAsync(IdentityUser user, IEnumerable<string> roles);
+    Task<string> GenerateAccessTokenAsync(ApplicationUser user, IEnumerable<string> roles);
 
     /// <summary>
     /// Gets the token expiry time in seconds

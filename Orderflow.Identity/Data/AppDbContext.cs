@@ -1,20 +1,27 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Orderflow.Identity.Data.Entities;
 
-namespace Orderflow.Identity.Data
+namespace Orderflow.Identity.Data;
+
+public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
 {
-    // Heredamos de IdentityDbContext, usando los tipos base de Identity
-    public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string>
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options)
-        {
-        }
-
-        // Aquí puedes agregar tus propias tablas además de las de Identity:
-        // public DbSet<Product> Products { get; set; } = null!;
     }
 
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
 
+        builder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(u => u.FirstName).HasMaxLength(100);
+            entity.Property(u => u.LastName).HasMaxLength(100);
+            entity.Property(u => u.GoogleId).HasMaxLength(100);
+            entity.Property(u => u.ProfilePictureUrl).HasMaxLength(500);
+        });
+    }
 }

@@ -8,6 +8,7 @@
   <!-- ====================== -->
   <ItemGroup Label="Aspire">
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Kubernetes" Version="13.1.0-preview.1.25616.3" />
     <PackageVersion Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.3.1" />
@@ -87,5 +88,9 @@
     <PackageVersion Include="NUnit.Analyzers" Version="4.4.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
+
+	  <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.0" />
+
+
   </ItemGroup>
 </Project>

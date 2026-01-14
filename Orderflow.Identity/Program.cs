@@ -1,16 +1,13 @@
 using Asp.Versioning;
 using FluentValidation;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Orderflow.Identity.Extensions;    // AddJwtAuthentication, OpenApiExtensions, DatabaseExtensions
+using Orderflow.Identity.Extensions;
 using Orderflow.Identity.Services;
-using Orderflow.Identity.Data;
 using Orderflow.Identity.Services.Auth;
-using Orderflow.Shared.Extensions;
 using Orderflow.Identity.Services.Roles;
 using Orderflow.Identity.Services.Users;
+using Orderflow.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // ============================================
-// OPENAPI / SCALAR + SEGURIDAD JWT EN DOCS
+// OPENAPI / SCALAR
 // ============================================
 builder.Services.AddOpenApi("v1", options =>
 {
@@ -32,24 +29,14 @@ builder.Services.AddOpenApi("v1", options =>
     options.FilterByApiVersion("v1");
 });
 
-//builder.Services.AddOpenApi("v2", options =>
-//{
-//    options.ConfigureDocumentInfo(
-//        "Orderflow Identity API V2",
-//        "v2",
-//        "None by now, :) ");
-//    options.AddJwtBearerSecurity();
-//    options.FilterByApiVersion("v2");
-//});
-
 // ============================================
-// AUTORIZACIÓN + CONTROLLERS
+// CONTROLLERS + AUTHORIZATION
 // ============================================
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 // ============================================
-// API VERSIONING (Asp.Versioning)
+// API VERSIONING
 // ============================================
 builder.Services
     .AddApiVersioning(options =>
@@ -57,56 +44,54 @@ builder.Services
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.ReportApiVersions = true;
-        options.ApiVersionReader = new UrlSegmentApiVersionReader(); // /api/v{version}/...
+        options.ApiVersionReader = new UrlSegmentApiVersionReader();
     })
     .AddApiExplorer(options =>
     {
-        options.GroupNameFormat = "'v'VVV";   // v1, v2, v2.0...
+        options.GroupNameFormat = "'v'VVV";
         options.SubstituteApiVersionInUrl = true;
     });
 
 // ============================================
 // FLUENT VALIDATION
 // ============================================
-// Si tus validators están en este assembly, esto está OK
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // ============================================
-// CORS CONFIGURATION
+// CORS
 // ============================================
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
 // ============================================
-// DATABASE (PostgreSQL)
+// IDENTITY + DATABASE + GOOGLE OAUTH
 // ============================================
-var connStr = builder.Configuration.GetConnectionString("identitydb");
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(connStr);
-});
+var connectionString = builder.Configuration.GetConnectionString("identitydb")!;
+builder.Services.AddIdentityWithGoogle(builder.Configuration, connectionString);
 
-//============================================
-// MASS TRANSIT + RABBITMQ (pendiente consumers)
-//============================================
+// ============================================
+// JWT AUTHENTICATION
+// ============================================
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// ============================================
+// MASSTRANSIT + RABBITMQ
+// ============================================
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
         var configuration = context.GetRequiredService<IConfiguration>();
-        var connectionString = configuration.GetConnectionString("messaging");
+        var rabbitConnectionString = configuration.GetConnectionString("messaging");
 
-        if (!string.IsNullOrEmpty(connectionString))
+        if (!string.IsNullOrEmpty(rabbitConnectionString))
         {
-            cfg.Host(new Uri(connectionString));
+            cfg.Host(new Uri(rabbitConnectionString));
         }
 
         cfg.ConfigureEndpoints(context);
@@ -114,76 +99,42 @@ builder.Services.AddMassTransit(x =>
 });
 
 // ============================================
-// ASP.NET CORE IDENTITY config
-// ============================================
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-{
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-
-    // Lockout settings
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    // User settings
-    options.User.RequireUniqueEmail = true;
-
-    // Sign in settings
-    options.SignIn.RequireConfirmedEmail = false; // En producción normalmente true
-})
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
-
-// ============================================
-// SERVICE LAYER
+// SERVICES
 // ============================================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-
-// ============================================
-// JWT BEARER AUTHENTICATION
-// ============================================
-builder.Services.AddJwtAuthentication(builder.Configuration); // extensión jwt  
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();  
 
 var app = builder.Build();
 
 // ============================================
-// SEED DEVELOPMENT DATA (DB, Roles, Admin User)
+// DEVELOPMENT PIPELINE
 // ============================================
 if (app.Environment.IsDevelopment())
 {
     await app.Services.SeedDevelopmentDataAsync();
 
     app.MapOpenApi();
-
     app.MapScalarApiReference(options =>
     {
         options
             .WithTitle("Orderflow Identity API")
             .AddDocument("v1", "V1 - Controllers", "/openapi/v1.json", isDefault: true);
-        // .AddDocument("v2", "V2 - Controllers", "/openapi/v2.json");
     });
-
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Orderflow Identity API V1");
-        // options.SwaggerEndpoint("/openapi/v2.json", "Orderflow Identity API V2");
     });
 }
 
 app.UseHttpsRedirection();
-app.UseCors();                // Siempre antes de Auth / AuthZ
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapDefaultEndpoints();    // Health checks / telemetry Aspire
+app.MapDefaultEndpoints();
 app.MapControllers();
 
 await app.RunAsync();
