@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Orderflow.Identity.Data.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -58,6 +59,11 @@ public class TokenService : ITokenService
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
         return Task.FromResult(tokenString);
+    }
+
+    public Task<string> GenerateAccessTokenAsync(ApplicationUser user, IEnumerable<string> roles)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

@@ -3,7 +3,7 @@
 public static class Roles
 {
     public const string Admin = nameof(Admin);
-    public const string Customer = "Customer";
+    public const string Customer = nameof(Customer);
 
     public static IEnumerable<string> GetAll()
     {

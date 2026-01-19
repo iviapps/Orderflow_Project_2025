@@ -1,8 +1,9 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+//in developtment - do not use in production 
+var jwtSecret = builder.AddParameter("jwtSecret", secret: true);
 
-var jwtSecret = builder.AddParameter("jwt-secret", secret: true);
 
 // ============================================
 // INFRASTRUCTURE

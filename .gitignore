@@ -122,3 +122,4 @@ PublishScripts/
 
 *.pfx
 *.snk
+*.local.json

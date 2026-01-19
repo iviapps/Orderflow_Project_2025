@@ -101,7 +101,7 @@ public class AuthService : IAuthService
             return AuthResult<RegisterResponse>.Failure(errors);
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(user, Roles.Customer);
+        var roleResult = await _userManager.AddToRoleAsync(user, Data.Roles.Customer );
         if (!roleResult.Succeeded)
         {
             _logger.LogWarning("Failed to assign Customer role to user {UserId}: {Errors}",
