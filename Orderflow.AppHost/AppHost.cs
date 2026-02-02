@@ -7,20 +7,21 @@ var builder = DistributedApplication.CreateBuilder(args);
 // JWT Secret - compartido entre Identity y API Gateway para validar tokens
 var jwtSecret = builder.AddParameter("jwt-secret", secret: true);
 
-// Google OAuth - para autenticación con Google (opcional en desarrollo)
-// Estos valores se configuran en User Secrets del AppHost
-var googleClientId = builder.AddParameter("google-client-id", secret: false);
-var googleClientSecret = builder.AddParameter("google-client-secret", secret: true);
+// Google OAuth - OPCIONAL para desarrollo
+// Solo se configura si existen los valores en User Secrets
+// Si no están configurados, el sistema funciona sin Google OAuth
+var googleClientId = builder.Configuration["Parameters:google-client-id"] ?? "";
+var googleClientSecret = builder.Configuration["Parameters:google-client-secret"] ?? "";
 
 // ============================================
 // INFRASTRUCTURE
 // ============================================
 
 // PostgreSQL - Database for microservices
+// NOTA: No usar WithHostPort() para evitar conflictos de puertos
 var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume("Orderflow-postgres-data")
+    .WithDataVolume("orderflow-postgres-data-v2")
     .WithPgAdmin()
-    .WithHostPort(5432)
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for microservices,
@@ -30,20 +31,19 @@ var ordersDb = postgres.AddDatabase("ordersdb");
 
 // Redis - Distributed cache for rate limiting only
 var redis = builder.AddRedis("cache")
-    .WithDataVolume("Orderflow-redis-data")
-    .WithHostPort(6379)
+    .WithDataVolume("orderflow-redis-data-v2")
     .WithLifetime(ContainerLifetime.Persistent);
 
 // RabbitMQ - Message broker for reliable event-driven communication
 var rabbitmq = builder.AddRabbitMQ("messaging")
-    .WithDataVolume("Orderflow-rabbitmq-data")
+    .WithDataVolume("orderflow-rabbitmq-data-v2")
     .WithManagementPlugin()
     .WithLifetime(ContainerLifetime.Persistent);
 
-// MailDev - Local SMTP server for development (Web UI on 1080, SMTP on 1025)
+// MailDev - Local SMTP server for development
 var maildev = builder.AddContainer("maildev", "maildev/maildev")
-    .WithHttpEndpoint(port: 1080, targetPort: 1080, name: "web")
-    .WithEndpoint(port: 1025, targetPort: 1025, name: "smtp")
+    .WithHttpEndpoint(targetPort: 1080, name: "web")
+    .WithEndpoint(targetPort: 1025, name: "smtp")
     .WithLifetime(ContainerLifetime.Persistent);
 
 // ============================================
@@ -53,8 +53,8 @@ var identityService = builder.AddProject<Projects.Orderflow_Identity>("orderflow
     .WithReference(identityDb)
     .WithReference(rabbitmq)
     .WithEnvironment("Jwt__Secret", jwtSecret)
-    .WithEnvironment("Google__ClientId", googleClientId)
-    .WithEnvironment("Google__ClientSecret", googleClientSecret)
+    .WithEnvironment("Google__ClientId", googleClientId)      // Opcional - vacío si no configurado
+    .WithEnvironment("Google__ClientSecret", googleClientSecret) // Opcional - vacío si no configurado
     .WaitFor(identityDb)
     .WaitFor(rabbitmq);
 
