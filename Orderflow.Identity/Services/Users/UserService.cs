@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Orderflow.Identity.Data.Entities;
 using Orderflow.Identity.DTOs.Users.Queries;
 using Orderflow.Identity.DTOs.Users.Requests;
 using Orderflow.Identity.DTOs.Users.Responses;
 using Orderflow.Shared.Common;
-
-
 
 namespace Orderflow.Identity.Services.Users;
 
@@ -14,11 +13,11 @@ namespace Orderflow.Identity.Services.Users;
 /// </summary>
 public class UserService : IUserService
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<UserService> _logger;
 
     public UserService(
-        UserManager<IdentityUser> userManager,
+        UserManager<ApplicationUser> userManager,
         ILogger<UserService> logger)
     {
         _userManager = userManager;
@@ -151,7 +150,7 @@ public class UserService : IUserService
         }
 
         // Create user
-        var user = new IdentityUser
+        var user = new ApplicationUser
         {
             UserName = request.UserName ?? request.Email,
             Email = request.Email,

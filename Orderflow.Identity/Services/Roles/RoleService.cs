@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Orderflow.Identity.Data.Entities;
 using Orderflow.Identity.DTOs.Roles.Responses;
 using Orderflow.Identity.DTOs.Users.Responses;
 using Orderflow.Shared.Common;
-
 
 namespace Orderflow.Identity.Services.Roles;
 
@@ -13,12 +13,12 @@ namespace Orderflow.Identity.Services.Roles;
 public class RoleService : IRoleService
 {
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RoleService> _logger;
 
     public RoleService(
         RoleManager<IdentityRole> roleManager,
-        UserManager<IdentityUser> userManager,
+        UserManager<ApplicationUser> userManager,
         ILogger<RoleService> logger)
     {
         _roleManager = roleManager;
