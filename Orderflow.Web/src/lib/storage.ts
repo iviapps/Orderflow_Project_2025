@@ -11,4 +11,3 @@ export const tokenStorage = {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
   },
 };
-//para recuperar jwt del local storage
