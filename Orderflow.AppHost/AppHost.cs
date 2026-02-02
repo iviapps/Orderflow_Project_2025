@@ -1,8 +1,16 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-
+// ============================================
+// SECRETS & PARAMETERS
+// ============================================
+// JWT Secret - compartido entre Identity y API Gateway para validar tokens
 var jwtSecret = builder.AddParameter("jwt-secret", secret: true);
+
+// Google OAuth - para autenticación con Google (opcional en desarrollo)
+// Estos valores se configuran en User Secrets del AppHost
+var googleClientId = builder.AddParameter("google-client-id", secret: false);
+var googleClientSecret = builder.AddParameter("google-client-secret", secret: true);
 
 // ============================================
 // INFRASTRUCTURE
@@ -44,7 +52,9 @@ var maildev = builder.AddContainer("maildev", "maildev/maildev")
 var identityService = builder.AddProject<Projects.Orderflow_Identity>("orderflow-identity")
     .WithReference(identityDb)
     .WithReference(rabbitmq)
-    .WithEnvironment("Jwt__Secret", jwtSecret) // primero
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Google__ClientId", googleClientId)
+    .WithEnvironment("Google__ClientSecret", googleClientSecret)
     .WaitFor(identityDb)
     .WaitFor(rabbitmq);
 
