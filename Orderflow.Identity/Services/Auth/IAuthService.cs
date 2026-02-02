@@ -3,7 +3,7 @@ using Orderflow.Identity.DTOs.Auth;
 using Orderflow.Identity.DTOs;                               
 using Orderflow.Identity.Services.Common;
 
-namespace Orderflow.Identity.Services                         
+namespace Orderflow.Identity.Services {                
     public interface IAuthService
     {
         Task<AuthResult<LoginResponse>> LoginAsync(
