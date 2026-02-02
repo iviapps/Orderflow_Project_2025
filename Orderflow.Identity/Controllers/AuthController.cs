@@ -1,7 +1,9 @@
 ﻿using Asp.Versioning;
-using Orderflow.Identity.DTOs.Auth;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Orderflow.Identity.DTOs.Auth;
 using Orderflow.Identity.Services;
+using Orderflow.Identity.Services.Auth;
 
 namespace Orderflow.Identity.Controllers
 {
@@ -14,11 +16,21 @@ namespace Orderflow.Identity.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
+        private readonly IGoogleAuthService _googleAuthService;
+        private readonly ILogger<AuthController> _logger;
+        private readonly string _frontendUrl;
+        public AuthController(
+             IAuthService authService,
+             IGoogleAuthService googleAuthService,
+             ILogger<AuthController> logger,
+             IConfiguration configuration)
         {
             _authService = authService;
+            _googleAuthService = googleAuthService;
+            _logger = logger;
+            _frontendUrl = configuration["Frontend:Url"] ?? "http://localhost:5173";
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)

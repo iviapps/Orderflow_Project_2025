@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Orderflow.Identity.Data;
 using Orderflow.Identity.Data.Entities;
 using Orderflow.Identity.DTOs.Auth;
 using Orderflow.Identity.Services.Common;
@@ -101,7 +102,7 @@ public class AuthService : IAuthService
             return AuthResult<RegisterResponse>.Failure(errors);
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(user, Roles.Customer);
+        var roleResult = await _userManager.AddToRoleAsync(user, Data.Roles.Customer);
         if (!roleResult.Succeeded)
         {
             _logger.LogWarning("Failed to assign Customer role to user {UserId}: {Errors}",

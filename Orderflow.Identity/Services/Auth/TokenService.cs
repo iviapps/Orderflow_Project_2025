@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
+using Orderflow.Identity.Data.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -13,8 +13,6 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
 
-    //TokenService usando IConfiguration para leer Jwt:*
-    //Lee Jwt:Secret, Jwt:Issuer, Jwt:Audience, Jwt:ExpiryInMinutes
     public TokenService(IConfiguration configuration)
     {
         _configuration = configuration;
@@ -23,7 +21,7 @@ public class TokenService : ITokenService
     /// <summary>
     /// Generates a JWT access token for an authenticated user
     /// </summary>
-    public Task<string> GenerateAccessTokenAsync(IdentityUser user, IEnumerable<string> roles)
+    public Task<string> GenerateAccessTokenAsync(ApplicationUser user, IEnumerable<string> roles)
     {
         var jwtSecret = _configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("Jwt:Secret is not configured");
@@ -41,8 +39,19 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(ClaimTypes.NameIdentifier, user.Id)
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Name, user.UserName ?? string.Empty)
         };
+
+        // Add name claims if available
+        if (!string.IsNullOrEmpty(user.FirstName))
+        {
+            claims.Add(new Claim(ClaimTypes.GivenName, user.FirstName));
+        }
+        if (!string.IsNullOrEmpty(user.LastName))
+        {
+            claims.Add(new Claim(ClaimTypes.Surname, user.LastName));
+        }
 
         // Add role claims
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
@@ -56,7 +65,6 @@ public class TokenService : ITokenService
         );
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
         return Task.FromResult(tokenString);
     }
 
@@ -66,6 +74,6 @@ public class TokenService : ITokenService
     public int GetTokenExpiryInSeconds()
     {
         var expiryMinutes = int.Parse(_configuration["Jwt:ExpiryInMinutes"] ?? "60");
-        return expiryMinutes * 60; // Convert minutes to seconds
+        return expiryMinutes * 60;
     }
 }

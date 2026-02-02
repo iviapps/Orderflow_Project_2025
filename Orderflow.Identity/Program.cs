@@ -106,6 +106,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();  
+//falta appsettings.json 
 
 var app = builder.Build();
 
