@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
+    "dev:windows": "vite --host --port %VITE_PORT%",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

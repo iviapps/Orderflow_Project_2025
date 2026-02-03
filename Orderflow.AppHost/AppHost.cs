@@ -67,7 +67,7 @@ var catalogService = builder.AddProject<Projects.Orderflow_Catalog>("orderflow-c
 
 
 //// Notifications Worker - Listens to RabbitMQ events and sends emails
-var notificationsService = builder.AddProject<Projects.Orderflow_Notifications>("Orderflow-notifications")
+var notificationsService = builder.AddProject<Projects.Orderflow_Notifications>("orderflow-notifications")
     .WithReference(rabbitmq)
     .WithEnvironment("Email__SmtpHost", maildev.GetEndpoint("smtp").Property(EndpointProperty.Host))
     .WithEnvironment("Email__SmtpPort", maildev.GetEndpoint("smtp").Property(EndpointProperty.Port))
@@ -75,7 +75,7 @@ var notificationsService = builder.AddProject<Projects.Orderflow_Notifications>(
 
 
 //// Orders Service - Order management
-var ordersService = builder.AddProject<Projects.Orderflow_Orders>("Orderflow-orders")
+var ordersService = builder.AddProject<Projects.Orderflow_Orders>("orderflow-orders")
     .WithReference(ordersDb)
     .WithReference(rabbitmq)
     .WithReference(catalogService)
@@ -103,7 +103,7 @@ var apiGateway = builder.AddProject<Projects.Orderflow_ApiGateway>("orderflow-ap
 //// FRONTEND - React App
 //// ============================================
 // Frontend communicates ONLY with API Gateway (not directly with microservices)
-var frontendApp = builder.AddNpmApp("Orderflow-web", "../Orderflow.web", "dev")
+var frontendApp = builder.AddNpmApp("orderflow-web", "../Orderflow.Web", "dev")
     .WithReference(apiGateway) // Frontend talks to Gateway, not to services directly
     .WithEnvironment("VITE_API_GATEWAY_URL", apiGateway.GetEndpoint("https")) // Gateway URL for frontend
     .WithHttpEndpoint(env: "VITE_PORT") // Vite uses VITE_PORT environment variable
