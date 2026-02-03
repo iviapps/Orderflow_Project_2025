@@ -1,17 +1,19 @@
-﻿using System.Security.Claims;                                
-using Orderflow.Identity.DTOs.Auth;                          
-using Orderflow.Identity.DTOs;                               
+﻿using System.Security.Claims;
+using Orderflow.Identity.DTOs.Auth;
+using Orderflow.Identity.DTOs;
 using Orderflow.Identity.Services.Common;
 
-namespace Orderflow.Identity.Services;                      
+namespace Orderflow.Identity.Services
+{
     public interface IAuthService
     {
         Task<AuthResult<LoginResponse>> LoginAsync(
-            LoginRequest request);                            
+            LoginRequest request);
 
         Task<AuthResult<RegisterResponse>> RegisterAsync(
-            RegisterRequest request);                         
+            RegisterRequest request);
 
         Task<AuthResult<CurrentUserResponse>> GetCurrentUserAsync(
-            string userId);                                 
+            string userId);
     }
+}
