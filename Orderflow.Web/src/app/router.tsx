@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "./ui/AppLayout";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
+import { AuthCallbackPage } from "../features/auth/pages/AuthCallbackPage";
 import { ProductsPage } from "../features/catalog/pages/ProductsPage";
 import { OrdersPage } from "../features/orders/pages/OrdersPage";
 import { ProfilePage } from "../features/profile/pages/ProfilePage";
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
             { path: "/", element: <ProductsPage /> },
             { path: "/login", element: <LoginPage /> },
             { path: "/register", element: <RegisterPage /> },
+            { path: "/auth/callback", element: <AuthCallbackPage /> },
             { path: "/orders", element: <OrdersPage /> },
             { path: "/profile", element: <ProfilePage /> },
             { path: "/admin/users", element: <AdminUsersPage /> },
