@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Orderflow.Catalog.Data;
+using Orderflow.Catalog.Extensions;
 using Orderflow.Catalog.Services;
 using Orderflow.Shared.Extensions; // AddJwtAuthentication + OpenApiExtensions (si la moviste a Shared)
 using Scalar.AspNetCore;
@@ -77,13 +78,11 @@ var app = builder.Build();
 // ============================================
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-    await db.Database.MigrateAsync();
+    await app.Services.SeedDevelopmentDataAsync();
 
     app.MapOpenApi();
-
     app.MapScalarApiReference(options =>
+
     {
         options
             .WithTitle("Orderflow Catalog API")

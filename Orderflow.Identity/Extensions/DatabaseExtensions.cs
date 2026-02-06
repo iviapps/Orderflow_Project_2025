@@ -12,11 +12,31 @@ public static class DatabaseExtensions
         using var scope = serviceProvider.CreateScope();
         var services = scope.ServiceProvider;
 
+        // Obtener el DbContext de Identity
         var context = services.GetRequiredService<AppDbContext>();
         await context.Database.MigrateAsync();
 
+        // Crear roles si no existen
         await SeedRolesAsync(services);
-        await SeedAdminUserAsync(services);
+
+        // Crear usuarios de desarrollo
+        await SeedUserAsync(
+            services,
+            email: "admin@admin.com",
+            password: "Test12345.",
+            firstName: "Admin",
+            lastName: "User",
+            role: Roles.Admin
+        );
+
+        await SeedUserAsync(
+            services,
+            email: "customer@customer.com",
+            password: "Test12345.",
+            firstName: "Customer",
+            lastName: "User",
+            role: Roles.Customer
+        );
     }
 
     private static async Task SeedRolesAsync(IServiceProvider services)
@@ -33,40 +53,48 @@ public static class DatabaseExtensions
         }
     }
 
-    private static async Task SeedAdminUserAsync(IServiceProvider services)
+    private static async Task SeedUserAsync(
+        IServiceProvider services,
+        string email,
+        string password,
+        string firstName,
+        string lastName,
+        string role
+    )
     {
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        const string adminEmail = "admin@admin.com";
-        const string adminPassword = "Test12345.";
-
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser == null)
+        // Evitar duplicados
+        var user = await userManager.FindByEmailAsync(email);
+        if (user != null)
         {
-            adminUser = new ApplicationUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                EmailConfirmed = true,
-                FirstName = "Admin",
-                LastName = "User"
-            };
+            Console.WriteLine($" User already exists: {email}");
+            return;
+        }
 
-            var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-            if (createResult.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, Roles.Admin);
-                Console.WriteLine($" Admin user created: {adminEmail}");
-            }
-            else
-            {
-                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                Console.WriteLine($" Failed to create admin user: {errors}");
-            }
-        }
-        else
+        // Crear usuario
+        user = new ApplicationUser
         {
-            Console.WriteLine($" Admin user already exists: {adminEmail}");
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+            FirstName = firstName,
+            LastName = lastName
+        };
+
+        var result = await userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            Console.WriteLine($" Failed to create user {email}: {errors}");
+            return;
         }
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            await userManager.AddToRoleAsync(user, role);
+        }
+
+        Console.WriteLine($" User created: {email} ({role})");
     }
 }
