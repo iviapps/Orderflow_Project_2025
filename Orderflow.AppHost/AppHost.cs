@@ -111,6 +111,9 @@ var frontendApp = builder.AddNpmApp("orderflow-web", "../Orderflow.Web", "dev")
     .WithExternalHttpEndpoints() // Make endpoint accessible via Aspire dashboard
     .PublishAsDockerFile();
 
-
+// Inject the actual frontend URL (dynamic port assigned by Aspire) into the Identity service.
+// Identity needs this URL to redirect the browser after Google OAuth completes (HTTP 302).
+// In production, override via environment variable Frontend__Url.
+identityService.WithEnvironment("Frontend__Url", frontendApp.GetEndpoint("http"));
 
 builder.Build().Run();
