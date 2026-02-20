@@ -1,3 +1,4 @@
+using System.Net;
 using Asp.Versioning;
 using FluentValidation;
 using MassTransit;
@@ -140,8 +141,31 @@ var forwardedOptions = new ForwardedHeadersOptions
                      | ForwardedHeaders.XForwardedHost
                      | ForwardedHeaders.XForwardedProto
 };
-forwardedOptions.KnownNetworks.Clear();
-forwardedOptions.KnownProxies.Clear();
+
+if (app.Environment.IsDevelopment())
+{
+    // In development with Aspire, the internal IPs of services are assigned dynamically
+    // and are not known in advance, so we trust forwarded headers from any source.
+    // NEVER do this in production: it allows any client to spoof their IP or host.
+    forwardedOptions.KnownNetworks.Clear();
+    forwardedOptions.KnownProxies.Clear();
+}
+else
+{
+    // In production, only trust headers coming from our YARP gateway's IP address(es).
+    // This prevents malicious clients from spoofing X-Forwarded-* headers directly.
+    // Configure the real gateway IPs in appsettings.Production.json.
+    var knownProxies = app.Configuration
+        .GetSection("ForwardedHeaders:KnownProxies")
+        .Get<string[]>() ?? [];
+
+    foreach (var ip in knownProxies)
+    {
+        if (IPAddress.TryParse(ip, out var parsedIp))
+            forwardedOptions.KnownProxies.Add(parsedIp);
+    }
+}
+
 app.UseForwardedHeaders(forwardedOptions);
 
 app.UseHttpsRedirection();
