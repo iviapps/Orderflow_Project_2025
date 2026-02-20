@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using FluentValidation;
 using MassTransit;
+using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 using Orderflow.Identity.Extensions;
 using Orderflow.Identity.Services;
@@ -129,6 +130,19 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Orderflow Identity API V1");
     });
 }
+
+// Trust X-Forwarded-* headers from YARP API Gateway so that OAuth redirect URIs
+// are built using the public gateway address (e.g. https://localhost:7182/signin-google)
+// instead of the internal Aspire host, preventing redirect_uri_mismatch errors.
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                     | ForwardedHeaders.XForwardedHost
+                     | ForwardedHeaders.XForwardedProto
+};
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 app.UseHttpsRedirection();
 app.UseCors();
