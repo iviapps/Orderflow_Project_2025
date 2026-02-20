@@ -64,7 +64,6 @@ public static class DatabaseExtensions
     {
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // Evitar duplicados
         var user = await userManager.FindByEmailAsync(email);
         if (user != null)
         {
@@ -72,7 +71,6 @@ public static class DatabaseExtensions
             return;
         }
 
-        // Crear usuario
         user = new ApplicationUser
         {
             UserName = email,
